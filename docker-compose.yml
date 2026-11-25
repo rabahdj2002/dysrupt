@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dysrupt
+      POSTGRES_PASSWORD: dysrupt
+      POSTGRES_DB: dysrupt
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  api:
+    build: services/api
+    ports: ["8000:8000"]
+    environment:
+      DATABASE_URL: postgresql://dysrupt:dysrupt@db:5432/dysrupt
+      REDIS_URL: redis://redis:6379
+    depends_on: [db, redis]
+  web:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host"
+    ports: ["5173:5173"]
+    volumes: [./apps/web:/app]
+volumes:
+  pgdata:
